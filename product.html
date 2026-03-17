@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Noir Absolu — AURUM NOIR</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Montserrat:wght@200;300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --black: #0a0a0a; --deep: #111108; --gold: #c9a84c;
+      --gold-light: #e4c97e; --gold-dark: #9a7a2e;
+      --ivory: #f5f0e8; --ivory-dim: #e8e0d0;
+      --gray: #6b6560;
+      --font-serif: 'Cormorant Garamond', serif;
+      --font-sans: 'Montserrat', sans-serif;
+    }
+    html { scroll-behavior: smooth; }
+    body { background: var(--black); color: var(--ivory); font-family: var(--font-sans); font-weight: 300; overflow-x: hidden; cursor: none; }
+    .cursor { position: fixed; width: 8px; height: 8px; background: var(--gold); border-radius: 50%; pointer-events: none; z-index: 9999; mix-blend-mode: difference; }
+    .cursor-ring { position: fixed; width: 36px; height: 36px; border: 1px solid var(--gold); border-radius: 50%; pointer-events: none; z-index: 9998; transition: transform 0.25s, width 0.3s, height 0.3s; transform: translate(-50%, -50%); opacity: 0.6; }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: var(--black); }
+    ::-webkit-scrollbar-thumb { background: var(--gold-dark); }
+
+    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 0 60px; height: 80px; display: flex; align-items: center; justify-content: space-between; background: rgba(10,10,10,0.95); backdrop-filter: blur(16px); border-bottom: 1px solid rgba(201,168,76,0.1); }
+    .nav-logo { font-family: var(--font-serif); font-size: 1.6rem; font-weight: 400; letter-spacing: 0.25em; color: var(--gold); text-decoration: none; }
+    .nav-logo span { font-style: italic; color: var(--ivory); }
+    .nav-links { display: flex; gap: 44px; list-style: none; }
+    .nav-links a { font-size: 0.68rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ivory-dim); text-decoration: none; transition: color 0.3s; position: relative; }
+    .nav-links a::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 1px; background: var(--gold); transition: width 0.4s; }
+    .nav-links a:hover { color: var(--gold); }
+    .nav-links a:hover::after { width: 100%; }
+    .nav-cart { display: flex; align-items: center; gap: 8px; font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ivory-dim); text-decoration: none; transition: color 0.3s; }
+    .nav-cart:hover { color: var(--gold); }
+    .cart-count { background: var(--gold); color: var(--black); width: 18px; height: 18px; border-radius: 50%; font-size: 0.6rem; display: flex; align-items: center; justify-content: center; font-weight: 500; }
+
+    /* BREADCRUMB */
+    .breadcrumb { padding: 100px 80px 0; display: flex; align-items: center; gap: 12px; }
+    .breadcrumb a, .breadcrumb span { font-size: 0.6rem; letter-spacing: 0.25em; text-transform: uppercase; text-decoration: none; }
+    .breadcrumb a { color: var(--gray); transition: color 0.3s; }
+    .breadcrumb a:hover { color: var(--gold); }
+    .breadcrumb span { color: var(--gold); }
+    .breadcrumb-sep { color: rgba(201,168,76,0.3); font-size: 0.5rem; }
+
+    /* PRODUCT MAIN */
+    .product-main {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: calc(100vh - 80px);
+      padding: 40px 80px 80px;
+      gap: 80px;
+      align-items: start;
+    }
+    .product-gallery { position: sticky; top: 100px; }
+    .main-img-wrap {
+      position: relative;
+      overflow: hidden;
+      background: #0d0d0a;
+    }
+    .main-img {
+      width: 100%;
+      aspect-ratio: 3/4;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.8s ease;
+      filter: brightness(0.9) saturate(0.85);
+    }
+    .main-img-wrap:hover .main-img { transform: scale(1.03); }
+    .img-number {
+      position: absolute; bottom: 24px; right: 24px;
+      font-family: var(--font-serif);
+      font-size: 0.7rem; letter-spacing: 0.3em;
+      color: rgba(201,168,76,0.5);
+    }
+    .img-badge {
+      position: absolute; top: 24px; left: 24px;
+      padding: 6px 16px;
+      background: var(--gold); color: var(--black);
+      font-size: 0.52rem; letter-spacing: 0.3em; text-transform: uppercase;
+      font-weight: 500;
+    }
+    .thumb-row {
+      display: flex; gap: 8px; margin-top: 8px;
+    }
+    .thumb {
+      width: 72px; aspect-ratio: 1;
+      object-fit: cover;
+      opacity: 0.5;
+      border: 1px solid transparent;
+      transition: opacity 0.3s, border-color 0.3s;
+      cursor: none;
+    }
+    .thumb:hover, .thumb.active { opacity: 1; border-color: var(--gold); }
+
+    /* PRODUCT INFO */
+    .product-info { padding-top: 12px; }
+    .product-meta {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 20px;
+    }
+    .product-family {
+      font-size: 0.58rem; letter-spacing: 0.35em;
+      text-transform: uppercase; color: var(--gold);
+    }
+    .product-edition {
+      font-size: 0.55rem; letter-spacing: 0.25em;
+      color: var(--gray); text-transform: uppercase;
+    }
+    .product-name {
+      font-family: var(--font-serif);
+      font-size: clamp(2.8rem, 5vw, 4rem);
+      font-weight: 300;
+      line-height: 1.05;
+      color: var(--ivory);
+      margin-bottom: 8px;
+      letter-spacing: 0.02em;
+    }
+    .product-name-italic {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 1rem;
+      color: var(--gold-light);
+      letter-spacing: 0.15em;
+      margin-bottom: 32px;
+      display: block;
+    }
+    .price-row {
+      display: flex; align-items: baseline; gap: 16px;
+      margin-bottom: 36px;
+      padding-bottom: 36px;
+      border-bottom: 1px solid rgba(201,168,76,0.12);
+    }
+    .product-price {
+      font-family: var(--font-serif);
+      font-size: 2.2rem; font-weight: 400;
+      color: var(--gold-light);
+    }
+    .price-size {
+      font-size: 0.65rem; letter-spacing: 0.15em;
+      color: var(--gray); text-transform: uppercase;
+    }
+
+    /* NOTES */
+    .notes-section { margin-bottom: 36px; }
+    .notes-title {
+      font-size: 0.58rem; letter-spacing: 0.35em;
+      text-transform: uppercase; color: var(--gold);
+      margin-bottom: 20px;
+    }
+    .notes-pyramid { display: flex; flex-direction: column; gap: 14px; }
+    .note-layer { display: flex; align-items: center; gap: 20px; }
+    .note-label {
+      font-size: 0.58rem; letter-spacing: 0.25em;
+      text-transform: uppercase; color: var(--gray);
+      width: 60px; flex-shrink: 0;
+    }
+    .note-bar-wrap {
+      flex: 1; height: 1px;
+      background: rgba(255,255,255,0.06);
+      position: relative;
+    }
+    .note-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold), transparent);
+      transition: width 1.5s cubic-bezier(0.4,0,0.2,1);
+      width: 0;
+    }
+    .note-bar.animated { width: var(--w); }
+    .note-names {
+      font-size: 0.65rem; letter-spacing: 0.08em;
+      color: var(--ivory-dim); width: 160px;
+    }
+
+    /* SIZE SELECT */
+    .size-section { margin-bottom: 36px; }
+    .size-title { font-size: 0.58rem; letter-spacing: 0.35em; text-transform: uppercase; color: var(--gold); margin-bottom: 16px; }
+    .size-options { display: flex; gap: 8px; }
+    .size-btn {
+      padding: 10px 24px;
+      border: 1px solid rgba(201,168,76,0.25);
+      background: transparent;
+      color: var(--gray);
+      font-family: var(--font-sans);
+      font-size: 0.65rem; letter-spacing: 0.15em;
+      cursor: none; transition: all 0.3s;
+    }
+    .size-btn:hover, .size-btn.active {
+      border-color: var(--gold); color: var(--gold);
+      background: rgba(201,168,76,0.06);
+    }
+
+    /* ADD BTN */
+    .add-section { margin-bottom: 32px; }
+    .qty-row { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+    .qty-ctrl {
+      display: flex; align-items: center;
+      border: 1px solid rgba(201,168,76,0.2);
+    }
+    .qty-btn {
+      width: 44px; height: 44px;
+      background: transparent; border: none;
+      color: var(--ivory); font-size: 1.1rem;
+      cursor: none; transition: background 0.3s;
+      font-family: var(--font-sans);
+    }
+    .qty-btn:hover { background: rgba(201,168,76,0.08); }
+    .qty-val {
+      width: 44px; text-align: center;
+      font-size: 0.8rem; color: var(--ivory);
+      letter-spacing: 0.1em;
+    }
+    .btn-add-cart {
+      width: 100%;
+      padding: 20px;
+      background: var(--gold);
+      border: none;
+      color: var(--black);
+      font-family: var(--font-sans);
+      font-size: 0.65rem; letter-spacing: 0.35em;
+      text-transform: uppercase; font-weight: 500;
+      cursor: none;
+      transition: background 0.3s, transform 0.2s;
+      position: relative; overflow: hidden;
+    }
+    .btn-add-cart::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: rgba(255,255,255,0.15);
+      transform: translateX(-100%);
+      transition: transform 0.4s ease;
+    }
+    .btn-add-cart:hover::before { transform: translateX(0); }
+    .btn-add-cart:hover { transform: translateY(-2px); }
+    .btn-wishlist {
+      width: 100%; margin-top: 12px;
+      padding: 16px;
+      background: transparent;
+      border: 1px solid rgba(201,168,76,0.2);
+      color: var(--gray);
+      font-family: var(--font-sans);
+      font-size: 0.62rem; letter-spacing: 0.3em;
+      text-transform: uppercase;
+      cursor: none; transition: all 0.3s;
+    }
+    .btn-wishlist:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* DETAILS */
+    .product-details {
+      margin-top: 40px;
+      border-top: 1px solid rgba(201,168,76,0.1);
+    }
+    .detail-accordion {
+      border-bottom: 1px solid rgba(201,168,76,0.08);
+    }
+    .detail-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 20px 0;
+      cursor: none;
+    }
+    .detail-title {
+      font-size: 0.62rem; letter-spacing: 0.3em;
+      text-transform: uppercase; color: var(--ivory-dim);
+    }
+    .detail-icon {
+      width: 20px; height: 20px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--gold); font-size: 1rem;
+      transition: transform 0.3s;
+    }
+    .detail-accordion.open .detail-icon { transform: rotate(45deg); }
+    .detail-body {
+      max-height: 0; overflow: hidden;
+      transition: max-height 0.5s ease, padding 0.3s;
+    }
+    .detail-accordion.open .detail-body { max-height: 300px; }
+    .detail-text {
+      font-size: 0.72rem; line-height: 2;
+      color: var(--gray); padding-bottom: 24px;
+      letter-spacing: 0.05em;
+    }
+    .detail-list { list-style: none; padding-bottom: 24px; }
+    .detail-list li {
+      font-size: 0.7rem; line-height: 1.8;
+      color: var(--gray); letter-spacing: 0.05em;
+      padding-left: 16px; position: relative;
+    }
+    .detail-list li::before { content: '✦'; position: absolute; left: 0; color: var(--gold-dark); font-size: 0.4rem; top: 6px; }
+
+    /* RELATED */
+    .related { padding: 80px 80px 100px; border-top: 1px solid rgba(255,255,255,0.04); }
+    .related-header { margin-bottom: 48px; }
+    .section-eyebrow { font-size: 0.6rem; letter-spacing: 0.4em; text-transform: uppercase; color: var(--gold); margin-bottom: 16px; }
+    .section-title { font-family: var(--font-serif); font-size: 2.2rem; font-weight: 300; color: var(--ivory); }
+    .section-title em { font-style: italic; color: var(--gold-light); }
+    .related-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
+    .related-card { position: relative; overflow: hidden; cursor: none; background: #0d0d0a; }
+    .related-card img { width: 100%; aspect-ratio: 2/3; object-fit: cover; display: block; transition: transform 0.7s; filter: brightness(0.8) saturate(0.7); }
+    .related-card:hover img { transform: scale(1.05); filter: brightness(0.65) saturate(0.5); }
+    .related-card-overlay { position: absolute; inset: 0; background: linear-gradient(0deg, rgba(0,0,0,0.75) 0%, transparent 50%); }
+    .related-card-info { position: absolute; bottom: 0; left: 0; right: 0; padding: 24px; }
+    .related-card-name { font-family: var(--font-serif); font-size: 1.2rem; color: var(--ivory); margin-bottom: 4px; }
+    .related-card-price { font-size: 0.7rem; color: var(--gold-light); letter-spacing: 0.08em; }
+    .related-card-hover { position: absolute; inset: 0; background: rgba(0,0,0,0.3); opacity: 0; transition: opacity 0.4s; display: flex; align-items: center; justify-content: center; }
+    .related-card:hover .related-card-hover { opacity: 1; }
+    .related-view-btn { padding: 11px 28px; border: 1px solid var(--gold); color: var(--gold); font-size: 0.58rem; letter-spacing: 0.28em; text-transform: uppercase; text-decoration: none; }
+    .related-view-btn:hover { background: var(--gold); color: var(--black); }
+
+    /* TOAST */
+    .toast { position: fixed; bottom: 40px; right: 40px; padding: 16px 28px; background: #0f0f0a; border: 1px solid var(--gold); color: var(--ivory); font-size: 0.7rem; letter-spacing: 0.12em; z-index: 999; transform: translateY(20px); opacity: 0; transition: all 0.4s; pointer-events: none; }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast-gold { color: var(--gold); font-family: var(--font-serif); font-size: 0.85rem; display: block; margin-bottom: 4px; }
+
+    /* REVEAL */
+    .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.8s ease, transform 0.8s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    footer { background: #070706; padding: 60px 80px 36px; border-top: 1px solid rgba(201,168,76,0.08); }
+    .footer-bottom { display: flex; justify-content: space-between; align-items: center; }
+    .footer-bottom-logo { font-family: var(--font-serif); font-size: 1.4rem; letter-spacing: 0.2em; color: var(--gold); }
+    .footer-copy { font-size: 0.6rem; letter-spacing: 0.12em; color: rgba(107,101,96,0.5); }
+
+    @media (max-width: 1024px) {
+      .product-main { grid-template-columns: 1fr; gap: 48px; padding: 40px 40px 80px; }
+      .product-gallery { position: relative; top: auto; }
+      .related { padding: 60px 40px; }
+      .related-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 640px) {
+      nav { padding: 0 24px; }
+      .breadcrumb { padding: 100px 24px 0; }
+      .product-main { padding: 40px 24px; }
+      .related { padding: 40px 24px; }
+      .related-grid { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<nav>
+  <a href="index.html" class="nav-logo">AURUM <span>Noir</span></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="shop.html">Collection</a></li>
+    <li><a href="product.html">Signature</a></li>
+    <li><a href="index.html#about">Our Story</a></li>
+  </ul>
+  <a href="cart.html" class="nav-cart">
+    <svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="1.2">
+      <path d="M1 1h2.5l2 8h8l2-6H5" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="8" cy="12.5" r="1" fill="currentColor" stroke="none"/>
+      <circle cx="14" cy="12.5" r="1" fill="currentColor" stroke="none"/>
+    </svg>
+    Cart <span class="cart-count" id="cartCount">0</span>
+  </a>
+</nav>
+
+<div class="breadcrumb">
+  <a href="index.html">Home</a>
+  <span class="breadcrumb-sep">✦</span>
+  <a href="shop.html">Collection</a>
+  <span class="breadcrumb-sep">✦</span>
+  <span>Noir Absolu</span>
+</div>
+
+<div class="product-main">
+  <!-- GALLERY -->
+  <div class="product-gallery">
+    <div class="main-img-wrap">
+      <img id="mainProductImg" src="https://images.unsplash.com/photo-1619994403073-2cec844b8e63?w=900&q=80" alt="Noir Absolu" class="main-img" />
+      <span class="img-badge">Bestseller · No. 001</span>
+      <span class="img-number">01 / 04</span>
+    </div>
+    <div class="thumb-row">
+      <img src="https://images.unsplash.com/photo-1619994403073-2cec844b8e63?w=200&q=70" class="thumb active" onclick="switchImg(this, 'https://images.unsplash.com/photo-1619994403073-2cec844b8e63?w=900&q=80', '01')" alt="View 1" />
+      <img src="https://images.unsplash.com/photo-1608528577891-eb055944f2e7?w=200&q=70" class="thumb" onclick="switchImg(this, 'https://images.unsplash.com/photo-1608528577891-eb055944f2e7?w=900&q=80', '02')" alt="View 2" />
+      <img src="https://images.unsplash.com/photo-1541643600914-78b084683702?w=200&q=70" class="thumb" onclick="switchImg(this, 'https://images.unsplash.com/photo-1541643600914-78b084683702?w=900&q=80', '03')" alt="View 3" />
+      <img src="https://images.unsplash.com/photo-1563170351-be82bc888aa4?w=200&q=70" class="thumb" onclick="switchImg(this, 'https://images.unsplash.com/photo-1563170351-be82bc888aa4?w=900&q=80', '04')" alt="View 4" />
+    </div>
+  </div>
+
+  <!-- PRODUCT INFO -->
+  <div class="product-info">
+    <div class="product-meta">
+      <span class="product-family">Woody Oriental · Extrait de Parfum</span>
+      <span class="product-edition">Edition No. 001 · 2024</span>
+    </div>
+    <h1 class="product-name">Noir Absolu</h1>
+    <span class="product-name-italic">The darkness of ancient forests in a single breath</span>
+
+    <div class="price-row">
+      <span class="product-price" id="displayPrice">₹18,500</span>
+      <span class="price-size" id="displaySize">50ml EDP</span>
+    </div>
+
+    <!-- NOTES -->
+    <div class="notes-section">
+      <p class="notes-title">Olfactory Pyramid</p>
+      <div class="notes-pyramid">
+        <div class="note-layer">
+          <span class="note-label">Top</span>
+          <div class="note-bar-wrap">
+            <div class="note-bar" style="--w: 65%"></div>
+          </div>
+          <span class="note-names">Black Pepper · Bergamot</span>
+        </div>
+        <div class="note-layer">
+          <span class="note-label">Heart</span>
+          <div class="note-bar-wrap">
+            <div class="note-bar" style="--w: 85%"></div>
+          </div>
+          <span class="note-names">Agarwood · Dark Rose</span>
+        </div>
+        <div class="note-layer">
+          <span class="note-label">Base</span>
+          <div class="note-bar-wrap">
+            <div class="note-bar" style="--w: 95%"></div>
+          </div>
+          <span class="note-names">Black Amber · Sandalwood · Labdanum</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SIZE -->
+    <div class="size-section">
+      <p class="size-title">Select Size</p>
+      <div class="size-options">
+        <button class="size-btn active" data-price="18500" data-size="50ml EDP" onclick="selectSize(this)">50ml</button>
+        <button class="size-btn" data-price="28500" data-size="100ml EDP" onclick="selectSize(this)">100ml</button>
+        <button class="size-btn" data-price="9800" data-size="Travel 15ml" onclick="selectSize(this)">Travel</button>
+      </div>
+    </div>
+
+    <!-- ADD TO CART -->
+    <div class="add-section">
+      <div class="qty-row">
+        <span style="font-size:0.58rem;letter-spacing:0.3em;text-transform:uppercase;color:var(--gold);">Quantity</span>
+        <div class="qty-ctrl">
+          <button class="qty-btn" onclick="changeQty(-1)">−</button>
+          <span class="qty-val" id="qtyVal">1</span>
+          <button class="qty-btn" onclick="changeQty(1)">+</button>
+        </div>
+      </div>
+      <button class="btn-add-cart" onclick="addToCart()">Add to Collection</button>
+      <button class="btn-wishlist">♡ &nbsp; Save to Wishlist</button>
+    </div>
+
+    <!-- DELIVERY -->
+    <div style="display:flex;gap:32px;padding:24px 0;border-top:1px solid rgba(201,168,76,0.08);border-bottom:1px solid rgba(201,168,76,0.08);margin-bottom:8px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="color:var(--gold);font-size:1rem;">✈</span>
+        <span style="font-size:0.6rem;letter-spacing:0.12em;color:var(--gray);">Free Worldwide Shipping</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="color:var(--gold);font-size:1rem;">🔒</span>
+        <span style="font-size:0.6rem;letter-spacing:0.12em;color:var(--gray);">Authenticity Guaranteed</span>
+      </div>
+    </div>
+
+    <!-- ACCORDIONS -->
+    <div class="product-details">
+      <div class="detail-accordion open">
+        <div class="detail-header" onclick="toggleAccordion(this)">
+          <span class="detail-title">The Story</span>
+          <span class="detail-icon">+</span>
+        </div>
+        <div class="detail-body">
+          <p class="detail-text">Noir Absolu was born from a vision of absolute darkness — not the void, but the rich, inhabited darkness of a forest floor at midnight. Our master perfumer spent three years perfecting this singular composition, building layer upon layer of smoky, resinous depth around a heart of ultra-premium Agarwood sourced from 80-year-old trees in Assam. The result is a fragrance that breathes, evolves, and ultimately becomes part of the wearer's own skin.</p>
+        </div>
+      </div>
+      <div class="detail-accordion">
+        <div class="detail-header" onclick="toggleAccordion(this)">
+          <span class="detail-title">Ingredients & Sourcing</span>
+          <span class="detail-icon">+</span>
+        </div>
+        <div class="detail-body">
+          <ul class="detail-list">
+            <li>Grade-A Agarwood (Oud) — sustainably harvested, Assam, India</li>
+            <li>Black Amber Absolute — cold-extracted in Grasse atelier</li>
+            <li>Mysore Sandalwood — ethically sourced, CITES certified</li>
+            <li>Labdanum Absolute — wild-harvested, Crete, Greece</li>
+            <li>All ingredients are natural; no synthetic materials</li>
+          </ul>
+        </div>
+      </div>
+      <div class="detail-accordion">
+        <div class="detail-header" onclick="toggleAccordion(this)">
+          <span class="detail-title">How to Wear</span>
+          <span class="detail-icon">+</span>
+        </div>
+        <div class="detail-body">
+          <p class="detail-text">Apply 2–3 sprays to pulse points — the inner wrist, neck, and behind the ears. The warmth of your skin will amplify the deeper notes. Noir Absolu develops over 6–8 hours; allow it time to bloom before forming judgements. It performs exceptionally on clean, moisturised skin.</p>
+        </div>
+      </div>
+      <div class="detail-accordion">
+        <div class="detail-header" onclick="toggleAccordion(this)">
+          <span class="detail-title">Packaging & Delivery</span>
+          <span class="detail-icon">+</span>
+        </div>
+        <div class="detail-body">
+          <p class="detail-text">Each bottle is individually filled by hand, wax-sealed, and numbered. It arrives in a hand-stitched noir lacquered box with a signed certificate of authenticity. Estimated delivery: 5–8 business days internationally, 2–3 days domestic.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- RELATED -->
+<section class="related">
+  <div class="related-header reveal">
+    <p class="section-eyebrow">You May Also Desire</p>
+    <h2 class="section-title">Other <em>Compositions</em></h2>
+  </div>
+  <div class="related-grid">
+    <div class="related-card reveal">
+      <img src="https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=600&q=80" alt="Rose de Minuit" />
+      <div class="related-card-overlay"></div>
+      <div class="related-card-hover">
+        <a href="product.html" class="related-view-btn">View</a>
+      </div>
+      <div class="related-card-info">
+        <p class="related-card-name">Rose de Minuit</p>
+        <p class="related-card-price">₹21,000 · 50ml</p>
+      </div>
+    </div>
+    <div class="related-card reveal">
+      <img src="https://images.unsplash.com/photo-1563170351-be82bc888aa4?w=600&q=80" alt="Encens Noir" />
+      <div class="related-card-overlay"></div>
+      <div class="related-card-hover">
+        <a href="product.html" class="related-view-btn">View</a>
+      </div>
+      <div class="related-card-info">
+        <p class="related-card-name">Encens Noir</p>
+        <p class="related-card-price">₹24,500 · 50ml</p>
+      </div>
+    </div>
+    <div class="related-card reveal">
+      <img src="https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=600&q=80" alt="Iris Sublime" />
+      <div class="related-card-overlay"></div>
+      <div class="related-card-hover">
+        <a href="product.html" class="related-view-btn">View</a>
+      </div>
+      <div class="related-card-info">
+        <p class="related-card-name">Iris Sublime</p>
+        <p class="related-card-price">₹28,000 · 50ml</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="toast" id="toast">
+  <span class="toast-gold">Added to Cart</span>
+  Noir Absolu · <span id="toastSize"></span>
+</div>
+
+<footer>
+  <div class="footer-bottom">
+    <div class="footer-bottom-logo">AURUM NOIR</div>
+    <p class="footer-copy">© 2025 AURUM NOIR · Handcrafted Perfumery</p>
+    <nav style="display:flex;gap:28px;">
+      <a href="index.html" style="font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--gray);text-decoration:none;">Home</a>
+      <a href="shop.html" style="font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--gray);text-decoration:none;">Collection</a>
+      <a href="cart.html" style="font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--gray);text-decoration:none;">Cart</a>
+    </nav>
+  </div>
+</footer>
+
+<script>
+  // Cursor
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove', e => { mx=e.clientX;my=e.clientY; cursor.style.left=mx-4+'px'; cursor.style.top=my-4+'px'; });
+  function animateRing(){ rx+=(mx-rx)*0.12; ry+=(my-ry)*0.12; ring.style.left=rx+'px'; ring.style.top=ry+'px'; requestAnimationFrame(animateRing); }
+  animateRing();
+  document.querySelectorAll('a, button, .thumb, .detail-header').forEach(el => {
+    el.addEventListener('mouseenter', () => { ring.style.width='56px'; ring.style.height='56px'; cursor.style.transform='scale(2)'; });
+    el.addEventListener('mouseleave', () => { ring.style.width='36px'; ring.style.height='36px'; cursor.style.transform='scale(1)'; });
+  });
+
+  // Reveal
+  const obs = new IntersectionObserver(entries => entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); }), {threshold:0.1});
+  document.querySelectorAll('.reveal').forEach(r => obs.observe(r));
+
+  // Animate note bars
+  const barObs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if(e.isIntersecting) e.target.querySelectorAll('.note-bar').forEach(b => b.classList.add('animated')); });
+  }, {threshold:0.3});
+  document.querySelectorAll('.notes-pyramid').forEach(n => barObs.observe(n));
+
+  // Gallery
+  function switchImg(thumb, src, num) {
+    document.getElementById('mainProductImg').src = src;
+    document.querySelectorAll('.thumb').forEach(t => t.classList.remove('active'));
+    thumb.classList.add('active');
+    document.querySelector('.img-number').textContent = num + ' / 04';
+  }
+
+  // Size select
+  let currentPrice = 18500;
+  let currentSize = '50ml EDP';
+  function selectSize(btn) {
+    document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentPrice = parseInt(btn.dataset.price);
+    currentSize = btn.dataset.size;
+    document.getElementById('displayPrice').textContent = '₹' + currentPrice.toLocaleString('en-IN');
+    document.getElementById('displaySize').textContent = currentSize;
+  }
+
+  // Qty
+  let qty = 1;
+  function changeQty(d) {
+    qty = Math.max(1, qty + d);
+    document.getElementById('qtyVal').textContent = qty;
+  }
+
+  // Cart
+  function addToCart() {
+    const cart = JSON.parse(localStorage.getItem('aurumCart') || '[]');
+    const name = 'Noir Absolu';
+    const existing = cart.find(i => i.name === name && i.size === currentSize);
+    if (existing) { existing.qty = (existing.qty||1) + qty; }
+    else { cart.push({ name, price: currentPrice, qty, size: currentSize, img: 'https://images.unsplash.com/photo-1619994403073-2cec844b8e63?w=300&q=70' }); }
+    localStorage.setItem('aurumCart', JSON.stringify(cart));
+    document.getElementById('cartCount').textContent = cart.reduce((s,i) => s+(i.qty||1), 0);
+    document.getElementById('toastSize').textContent = currentSize;
+    const t = document.getElementById('toast');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  // Accordion
+  function toggleAccordion(header) {
+    const acc = header.parentElement;
+    acc.classList.toggle('open');
+  }
+
+  // Cart count
+  function updateCartCount() {
+    const cart = JSON.parse(localStorage.getItem('aurumCart') || '[]');
+    document.getElementById('cartCount').textContent = cart.reduce((s,i) => s+(i.qty||1), 0);
+  }
+  updateCartCount();
+</script>
+</body>
+</html>
